@@ -78,10 +78,10 @@ const Snake = () => {
 
 
       <div className="flex flex-col w-auto bg-red-200 ">
-        {grid.map((currentSup, x) => {
+        {grid.map((currentSup, y) => {
           return (
             <div className="flex bg-slate-300  justify-evenly">
-              {currentSup.map((currentBox, y) => {
+              {currentSup.map((currentBox, x) => {
 
                 if ( _.isEqual(state.context.foodLocation, {x:x, y:y})  ){
                   return <div className='flex bg-red-700 shadow-inner w-12 h-12 border border-slate-400 rounded-md'></div>
