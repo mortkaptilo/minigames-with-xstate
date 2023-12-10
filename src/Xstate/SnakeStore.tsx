@@ -1,5 +1,9 @@
 
-import { Machine, assign } from 'xstate';
+import { Machine, assign, createMachine, send } from 'xstate';
+import { raise } from 'xstate/lib/actions';
+
+
+const raiseGameOver = raise('GAME_OVER');
 
 interface SnakeGameContext {
   snake: Array<{ x: number; y: number }>;
@@ -8,9 +12,10 @@ interface SnakeGameContext {
   score: number;
   size: number;
   tickTime: number;
+  isGameOver: boolean
 }
 
-const snakeGameMachine = Machine<SnakeGameContext>({
+const snakeGameMachine = createMachine<SnakeGameContext>({
   id: 'snakeGame',
   initial: 'notStarted',
   context: {
@@ -20,6 +25,7 @@ const snakeGameMachine = Machine<SnakeGameContext>({
     score: 0,
     size: 8,
     tickTime: 500,
+    isGameOver: false
     // ... other game context properties
   },
   states: {
@@ -32,17 +38,34 @@ const snakeGameMachine = Machine<SnakeGameContext>({
       }
     },
     playing: {
+
+      always: [
+        { target: 'gameOver', cond: (context)=> context.isGameOver },
+        
+      ],
+      
       on: {
+
+      
+
+
         CHANGE_DIRECTION: {
 
           actions: ['changeDirection']
         },
-        TICK: {
-          actions: ['tick']
-        },
+        TICK: [
+          {
+            actions: ['tick'],
+            
+            
+          },
+
+        ],
         PAUSE: 'paused',
         GAME_OVER: 'gameOver'
-      }
+      },
+      
+
     },
     paused: {
       on: {
@@ -51,6 +74,7 @@ const snakeGameMachine = Machine<SnakeGameContext>({
       }
     },
     gameOver: {
+      entry: 'gameOverGreeter',
       on: {
         RESET: {
 
@@ -70,9 +94,8 @@ const snakeGameMachine = Machine<SnakeGameContext>({
 
         const size = event.size;
         const tickTime = event.tt;
-
         const startPosition = {x: Math.floor(Math.random() * size) , y: Math.floor(Math.random() * size) };
-        
+
         // Start with just the head of the snake return [startPosition];
         const foodPosition = {x: Math.floor(Math.random() * size) , y: Math.floor(Math.random() *size) };
 
@@ -97,7 +120,12 @@ const snakeGameMachine = Machine<SnakeGameContext>({
        }
     }),
 
-    tick :assign((context) => {
+
+    
+    tick:
+    
+    
+    assign((context) => {
       const gridSize = context.size;
       const direction = context.direction;
       const snake = context.snake;
@@ -107,20 +135,52 @@ const snakeGameMachine = Machine<SnakeGameContext>({
       const head = snake.length === 0 ? { x: 0, y: 0 } : snake[0];
       const newHead = { ...head };
       switch (direction) {
-        case 'UP': newHead.y -= 1; break;
-        case 'DOWN': newHead.y += 1; break;
-        case 'LEFT': newHead.x -= 1; break;
-        case 'RIGHT': newHead.x += 1; break;
+        case 'UP': 
+          if(newHead.x == 0){
+            newHead.x= context.size -1
+          }
+
+          else  newHead.x -= 1; 
+
+          break;
+        case 'DOWN': 
+          if(newHead.x == context.size -1){
+            newHead.x= 0
+          }
+        
+          else newHead.x += 1; 
+
+            break;
+        case 'LEFT': 
+
+          if(newHead.y == 0){
+            newHead.y= context.size -1
+          }
+          else newHead.y -= 1; 
+
+          break;
+        case 'RIGHT': 
+
+          if(newHead.y == context.size -1){
+            newHead.y= 0
+          }
+          else newHead.y += 1; 
+
+          break;
       }
 
       const collisionWithSelf = snake.some(segment => segment.x === newHead.x && segment.y === newHead.y);
 
       if ( collisionWithSelf) {
-        // Transition to a game over state, or handle the game over logic
-        // For this example, we'll just log to the console
+   
+          
+          return {
+            ...context,
+            isGameOver: true
+
+          };
+       
         
-        console.log('Game Over');
-        return {}; // Return the context unmodified
       }
 
       // Update the snake's position by adding the new head to the front of the snake array
@@ -130,11 +190,15 @@ const snakeGameMachine = Machine<SnakeGameContext>({
       if (newHead.x === foodLocation.x && newHead.y === foodLocation.y) {
         // Add a new segment to the snake, increase score, and place new food
         // For simplicity, we're not updating foodLocation here
+        console.log('test');
+
+        send('GAME_OVER')
         return {
           ...context,
           snake: [...newSnake, snake[snake.length - 1]], // Add the last segment back to grow the snake
           score: context.score + 1,
-          // foodLocation: ... // Logic to place new food goes here
+          
+          foodLocation : {x: Math.floor(Math.random() * context.size) , y: Math.floor(Math.random() * context.size) }
         };
       }
 
@@ -144,11 +208,23 @@ const snakeGameMachine = Machine<SnakeGameContext>({
         snake: newSnake,
       };
     }),
+    
 
+    gameOverGreeter: assign(
+      (context)=>{
+        console.log("greetings from game over")
 
-    resetGame: assign({
-      
-    })
+        return {
+          ...context,
+          foodLocation: {x:0, y:0}
+        }
+      }
+
+    )
+
+   
+
+    
     // ... other actions, guards, and services
   }
 });
