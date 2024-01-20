@@ -12,7 +12,7 @@ import Tetris from "./tetris/Tetris";
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/minigames-with-xstate",
     element: <Header />,
     
     
@@ -29,11 +29,7 @@ const router = createBrowserRouter([
         element: <Minesweeper/>
       },
 
-      {
-
-        path: "tetris",
-        element: <Tetris/>
-      }
+      
     ],
   },
 ]);
