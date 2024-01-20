@@ -109,7 +109,8 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
           tickTime: tickTime,
           direction:  d,
           snake: [startPosition],
-          foodLocation: foodPosition
+          foodLocation: foodPosition,
+          score: 0,
           
         }
       }
@@ -202,12 +203,25 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
         // For simplicity, we're not updating foodLocation here
         console.log('test');
 
+
+
+        const newFoodPosition = {x: Math.floor(Math.random() * context.size) , y: Math.floor(Math.random() * context.size) };
+
+        newSnake.push(snake[snake.length - 1]);
+
+        while(newSnake.some(segment => segment.x === newFoodPosition.x && segment.y === newFoodPosition.y)){
+
+          newFoodPosition.x = Math.floor(Math.random() * context.size) ;
+          newFoodPosition.y = Math.floor(Math.random() * context.size) ;
+
+        }
+
         return {
           ...context,
-          snake: [...newSnake, snake[snake.length - 1]], // Add the last segment back to grow the snake
+          snake: newSnake, // Add the last segment back to grow the snake
           score: context.score + 1,
           
-          foodLocation : {x: Math.floor(Math.random() * context.size) , y: Math.floor(Math.random() * context.size) }
+          foodLocation : newFoodPosition
         };
       }
 
