@@ -4,6 +4,7 @@ import path from "path"
 
 
 export default defineConfig({
+  base: "/minigames-with-xstate/",
   plugins: [react()],
   resolve: {
     alias: {
