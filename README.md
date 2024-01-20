@@ -8,3 +8,11 @@ This is a personal education project for learning different state management con
 Currently in progress:
 
 - Tetris
+
+
+Technologies used:
+
+- React
+- Vite
+- XState
+- Tailwindcss
