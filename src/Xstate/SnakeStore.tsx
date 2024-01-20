@@ -2,6 +2,7 @@
 import { Machine, assign, createMachine, send } from 'xstate';
 import { raise } from 'xstate/lib/actions';
 
+const dirs = ["UP", "LEFT", "DOWN", "RIGHT"];
 
 const raiseGameOver = raise('GAME_OVER');
 
@@ -24,7 +25,7 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
     direction: 'RIGHT' , // The initial direction of the snake
     score: 0,
     size: 8,
-    tickTime: 500,
+    tickTime: 300,
     isGameOver: false
     // ... other game context properties
   },
@@ -45,9 +46,6 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
       ],
       
       on: {
-
-      
-
 
         CHANGE_DIRECTION: {
 
@@ -78,7 +76,7 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
       on: {
         RESET: {
 
-          actions: 'resetGame',
+          actions: assign({   isGameOver: false }),
           target: 'notStarted'
           
         }
@@ -99,11 +97,17 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
         // Start with just the head of the snake return [startPosition];
         const foodPosition = {x: Math.floor(Math.random() * size) , y: Math.floor(Math.random() *size) };
 
+       
+        console.log(size, '  ',tickTime)
+        const d = dirs[Math.floor(Math.random() * 4)];
+        
+       
         
         return {
           ...context,
           size: size,
           tickTime: tickTime,
+          direction:  d,
           snake: [startPosition],
           foodLocation: foodPosition
           
@@ -112,11 +116,17 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
     
     ),
     
-    changeDirection: assign({
-
+    changeDirection: assign(
+      
+      {
+        
        direction:   (context, event) => {
+          const dirs = ["UP", "LEFT", "DOWN", "RIGHT"];
 
-          return event.dir
+          if (dirs[ (event.dir+ 2)% 4  ] == context.direction) return context.direction;
+        
+
+          return dirs[event.dir]
        }
     }),
 
@@ -192,7 +202,6 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
         // For simplicity, we're not updating foodLocation here
         console.log('test');
 
-        send('GAME_OVER')
         return {
           ...context,
           snake: [...newSnake, snake[snake.length - 1]], // Add the last segment back to grow the snake
@@ -216,7 +225,7 @@ const snakeGameMachine = createMachine<SnakeGameContext>({
 
         return {
           ...context,
-          foodLocation: {x:0, y:0}
+      
         }
       }
 
